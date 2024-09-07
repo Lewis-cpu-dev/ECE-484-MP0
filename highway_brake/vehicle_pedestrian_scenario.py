@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     # # Uncomment this block to use R3
     # init_car = [[-5,-5,0,7],[5,5,0,9]]
-    # init_pedestrian = [[165,-55,0,3],[175,-50,0,3]]
+    # init_pedestrian = [[173,-55,0,3],[176,-53,0,3]]
     # # -----------------------------------------
 
     scenario.set_init_single(
