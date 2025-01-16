@@ -60,6 +60,11 @@ if __name__ == "__main__":
     #                          0,'time', 1,'x',2,'y')
     # fig.show()
     # -----------------------------------------
+
+    #-------(optional) Dump traces to json file
+    # traces.dump('path')
+    #------- (optional) Save figure to HTML
+    # fig.write_html("path/to/file.html")
     
     # # ------------- Verify refine: Uncomment this block to perform verification with refinement -------------
     # traces = verify_refine(scenario, 50, 0.1)
