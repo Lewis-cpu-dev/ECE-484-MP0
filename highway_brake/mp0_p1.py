@@ -24,9 +24,21 @@ def tree_safe(tree: AnalysisTree):
         if node.assert_hits is not None:
             return False 
     return True
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    RED = '\033[31m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
 
-def verify_refine(scenario: Scenario, time_horizon, time_step, refine_depth = 4
+def verify_refine(scenario: Scenario, time_horizon, time_step
 ):
+   
     init_car = scenario.init_dict['car']
     init_ped = scenario.init_dict['pedestrian']
     partition_depth = 0
@@ -57,22 +69,39 @@ def verify_refine(scenario: Scenario, time_horizon, time_step, refine_depth = 4
             init_queue.append((tmp, init_ped, partition_depth))
     # init_queue = [(init_car, init_ped, partition_depth)]
         
-    total = 4*(2**(refine_depth))
-    with alive_bar(total) as bar:
-        while init_queue!=[] and partition_depth < refine_depth:
+
+    # def print_progress_bar(iteration, total, length=50):
+    #     percent = 100 * (iteration / float(total))
+    #     filled_length = int(length * iteration // total)
+    #     bar = '█' * filled_length + '-' * (length - filled_length)
+    #     print(f'\r|{bar}| {percent:.1f}% Verified Safe', end='')
+
+
+
+
+    #total = 4*(2**(refine_depth))
+    #with alive_bar(total) as bar:
+    #prev = 0
+    with alive_bar(100, max_cols = 140) as safe_bar:
+        safe_bar.title( bcolors.OKGREEN + '% Verified Safe (May be at 0% for some time)'+ bcolors.ENDC)
+
+        while init_queue!=[]:
             car_init, ped_init, partition_depth = init_queue.pop(0)
-            bar()
-           
-            print(f"######## Current Partition Depth: {partition_depth}, car x, {car_init[0][0]}, {car_init[1][0]}, car v, {car_init[0][3]}, {car_init[1][3]}, ped x, {ped_init[0][0]}, {ped_init[1][0]}, ped y, {ped_init[0][1]}, {ped_init[1][1]}")
+
+            if(partition_depth >=5):
+                print(bcolors.OKBLUE +"If the % Safe bar hasn't gone up by now, we recommend exiting" + bcolors.ENDC)
+
+            print(bcolors.BOLD +  f"######## Current Partition Depth: {partition_depth}, car x: [{car_init[0][0]}, {car_init[1][0]}]  car v: [{car_init[0][3]}, {car_init[1][3]}]" + bcolors.ENDC)
             scenario.set_init_single('car', car_init, (VehicleMode.Normal,))
             scenario.set_init_single('pedestrian', ped_init, (PedestrianMode.Normal,))
             traces = scenario.verify(time_horizon, time_step)
+            scenario.verifier.loop_cache = []
             if not tree_safe(traces):
                 # Partition car and pedestrian initial state
                 idx = refine_profile[exp][partition_depth%len(refine_profile[exp])]
-                print(car_init[1][idx] - car_init[0][idx])
+                #print(car_init[1][idx] - car_init[0][idx])
                 if car_init[1][idx] - car_init[0][idx] < 0.01:
-                    print(f"Can't partition dim {idx} anymore. Scenario is likely unsafe")
+                    print(bcolors.RED + f"Can't partition initial set dimension {idx} anymore. Scenario is likely unsafe😭" + bcolors.ENDC)
                     res_list.append(traces)
                     return res_list
                     # if(exp == 'R2' or exp == 'R3'):
@@ -135,11 +164,6 @@ def verify_refine(scenario: Scenario, time_horizon, time_step, refine_depth = 4
 
                     #init_queue.append((car_init, ped_init, partition_depth+1))
                     #continue
-                elif partition_depth >= refine_depth:
-                    print('Max partition depth reached. Scenario may be unsafe')
-                    res_list.append(traces)
-                    return res_list
-
                 car_v_init = (car_init[0][idx] + car_init[1][idx])/2
                 car_init1 = copy.deepcopy(car_init)
                 car_init1[1][idx] = car_v_init 
@@ -148,9 +172,13 @@ def verify_refine(scenario: Scenario, time_horizon, time_step, refine_depth = 4
                 car_init2[0][idx] = car_v_init 
                 init_queue.append((car_init2, ped_init, partition_depth+1))
             else:
+                #prev +=total*(1/(4*(2**partition_depth)))
+                safe_bar(100*(1/(4*(2**partition_depth))))
                 res_list.append(traces)
+            #print_progress_bar(prev, total)
+
     # com_traces = combine_tree(res_list)
-    print("Scenario is SAFE")
+    print( bcolors.OKGREEN + "Verify Refine: Scenario is SAFE😃" + bcolors.ENDC)
     return res_list
 
 class PedestrianAgent(BaseAgent):
@@ -446,7 +474,7 @@ def eval_velocity(tree_list: List[AnalysisTree]):
         leaves = list(filter(lambda node: node.child == [], tree.nodes))
         unsafe = list(filter(lambda node: node.assert_hits != None, leaves))
         if len(unsafe) != 0:
-            print(f"unsafety detected in tree with init {tree.root.init}")
+            print(bcolors.RED + f"Unsafety Detected in Tree With Init {tree.root.init}😫" + bcolors.ENDC)
             unsafe_init.append(tree.root.init)
         else:
             safe = np.array(list(filter(lambda node: node.assert_hits == None, leaves)))
@@ -456,13 +484,21 @@ def eval_velocity(tree_list: List[AnalysisTree]):
             velos = (last_xs-init_x)/time
             max_velo = np.max(velos)
             velo_list.append(max_velo)
-            print(f"Max avg velocity {max_velo} in tree with init {tree.root.init}")
+            print(f"Max AVG velocity {max_velo} in tree with init {tree.root.init}")
     if len(tree_list) == len(velo_list):
-        print(f"No unsafety detected! Overall average velocity is {sum(velo_list)/len(velo_list)}.")
-        return {sum(velo_list)/len(velo_list)}, 0, []
+        print(bcolors.OKGREEN + f"No Unsafety detected!🥰" + bcolors.ENDC)
     else:
-        print(f"Unsafety detected! Please update your DL.")
-        return None, float(len(unsafe_init))/float(len(tree_list)), unsafe_init
+        if(len(velo_list) == 0):
+            print(bcolors.RED + f"You had no safe executions.💀" + bcolors.ENDC)
+            return {0}, 1, unsafe_init
+        else:
+            print(bcolors.RED + f"Unsafety detected! Please update your DL" + bcolors.ENDC)
+    if( sum(velo_list)/len(velo_list) >= 7):
+        print(bcolors.OKGREEN + f"Overall average velocity over {len(velo_list)} safe executions is {sum(velo_list)/len(velo_list)}. This is alove the threshold of 7!😋" + bcolors.ENDC)
+    else:
+        print(bcolors.RED + f"Overall average velocity over {len(velo_list)} safe executions is {sum(velo_list)/len(velo_list)}. This is below the threshold of 7!😱" + bcolors.ENDC)
+
+    return {sum(velo_list)/len(velo_list)}, float(len(unsafe_init))/float(len(tree_list)), unsafe_init
 
 def combine_tree(tree_list: List[AnalysisTree]):
     combined_trace={}

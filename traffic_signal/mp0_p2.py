@@ -297,7 +297,17 @@ def sample_init(scenario: Scenario, num_sample=50):
     print(sample_dict_list)
 
     return sample_dict_list
-
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    RED = '\033[31m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
 def eval_velocity(tree_list: List[AnalysisTree]):
     agent_id = 'car'
     velo_list = []
@@ -307,7 +317,7 @@ def eval_velocity(tree_list: List[AnalysisTree]):
         leaves = list(filter(lambda node: node.child == [], tree.nodes))
         unsafe = list(filter(lambda node: node.assert_hits != None, leaves))
         if len(unsafe) != 0:
-            print(f"unsafety detected in tree with init {tree.root.init}")
+            print(bcolors.RED + f"Unsafety Detected in Tree With Init {tree.root.init}😫" + bcolors.ENDC)
             unsafe_init.append(tree.root.init)
         else:
             safe = np.array(list(filter(lambda node: node.assert_hits == None, leaves)))
@@ -317,13 +327,21 @@ def eval_velocity(tree_list: List[AnalysisTree]):
             velos = (last_xs-init_x)/time
             max_velo = np.max(velos)
             velo_list.append(max_velo)
-            print(f"max avg velocoty {max_velo} in tree with init {tree.root.init}")
+            print(f"Max AVG velocity {max_velo} in tree with init {tree.root.init}")
     if len(tree_list) == len(velo_list):
-        print(f"No unsafety detected! Overall average velocity is {sum(velo_list)/len(velo_list)}.")
-        return {sum(velo_list)/len(velo_list)}, 0, []
+        print(bcolors.OKGREEN + f"No Unsafety detected!🥰" + bcolors.ENDC)
     else:
-        print(f"Unsafety detected! Please update your DL.")
-        return None, float(len(unsafe_init))/float(len(tree_list)), unsafe_init
+        if(len(velo_list) == 0):
+            print(bcolors.RED + f"You had no safe executions.💀" + bcolors.ENDC)
+            return {0}, 1, unsafe_init
+        else:
+            print(bcolors.RED + f"Unsafety detected! Please update your DL" + bcolors.ENDC)
+    if( sum(velo_list)/len(velo_list) >= 6.5):
+        print(bcolors.OKGREEN + f"Overall average velocity over {len(velo_list)} safe executions is {sum(velo_list)/len(velo_list)}. This is alove the threshold of 6.5!😋" + bcolors.ENDC)
+    else:
+        print(bcolors.RED + f"Overall average velocity over {len(velo_list)} safe executions is {sum(velo_list)/len(velo_list)}. This is below the threshold of 6.5!😱" + bcolors.ENDC)
+
+    return {sum(velo_list)/len(velo_list)}, float(len(unsafe_init))/float(len(tree_list)), unsafe_init
 
 def combine_tree(tree_list: List[AnalysisTree]):
     combined_trace={}

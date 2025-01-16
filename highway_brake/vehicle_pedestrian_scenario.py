@@ -44,21 +44,25 @@ if __name__ == "__main__":
         'pedestrian', init_pedestrian, (PedestrianMode.Normal,)
     )
 
-    # ------ Simulate simple single: Uncomment this block to perform single simple simulation -------
-    trace = scenario.simulate_simple(50, 0.1)
-    avg_vel, unsafe_frac, unsafe_init = eval_velocity([trace])
-    fig = go.Figure()
-    fig = simulation_tree_3d(trace, fig,\
-                              0,'time', 1,'x',2,'y')
-    fig.show()
+    # ------ Simulate: Uncomment this block to perform single simulation n times -------
+    # traces = []
+    # fig = go.Figure()
+    # n =3 
+    # for i in range(n):
+    #     trace = scenario.simulate(50, 0.1)
+    #     traces.append(trace)
+    #     fig = simulation_tree_3d(trace, fig,\
+    #                             0,'time', 1,'x',2,'y')
+    # avg_vel, unsafe_frac, unsafe_init = eval_velocity(traces)
+    # fig.show()
     # -----------------------------------------
 
     # ----------- verify no refine: Uncomment this block to perform verification without refinement ----------
-    # traces = scenario.verify(50, 0.1)
-    # fig = go.Figure()
-    # fig = reachtube_tree_3d(traces, fig,\
-    #                          0,'time', 1,'x',2,'y')
-    # fig.show()
+    traces = scenario.verify(50, 0.1)
+    fig = go.Figure()
+    fig = reachtube_tree_3d(traces, fig,\
+                             0,'time', 1,'x',2,'y')
+    fig.show()
     # -----------------------------------------
 
     #-------(optional) Dump traces to json file

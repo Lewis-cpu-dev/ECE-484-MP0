@@ -44,9 +44,13 @@ if __name__ == "__main__":
         'tl', init_trfficlight, (TLMode.GREEN,)
     )
 
-    trace = scenario.simulate_simple(80, 0.1)
-    avg_vel, unsafe_frac, unsafe_init = eval_velocity([trace])
+    traces = []
     fig = go.Figure()
-    fig = simulation_tree_3d(trace, fig,\
-                             0,'time', 1,'x',2,'y')
+    n=3
+    for i in range(n):
+        trace = scenario.simulate(80, 0.1)
+        traces.append(trace)
+        fig = simulation_tree_3d(trace, fig,\
+                                0,'time', 1,'x',2,'y')
+    avg_vel, unsafe_frac, unsafe_init = eval_velocity(traces)
     fig.show()
