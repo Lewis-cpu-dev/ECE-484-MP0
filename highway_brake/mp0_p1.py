@@ -82,14 +82,15 @@ def verify_refine(scenario: Scenario, time_horizon, time_step
     #total = 4*(2**(refine_depth))
     #with alive_bar(total) as bar:
     #prev = 0
-    with alive_bar(100, max_cols = 140) as safe_bar:
+    progress = 0
+    with alive_bar(100, max_cols = 140, manual = True) as safe_bar:
         safe_bar.title( bcolors.OKGREEN + '% Verified Safe (May be at 0% for some time)'+ bcolors.ENDC)
 
         while init_queue!=[]:
             car_init, ped_init, partition_depth = init_queue.pop(0)
 
             if(partition_depth >=5):
-                print(bcolors.OKBLUE +"If the % Safe bar hasn't gone up by now, we recommend exiting" + bcolors.ENDC)
+                print(bcolors.OKBLUE +"If the % Safe bar hasn't gone up past 0% by now, we recommend exiting" + bcolors.ENDC)
 
             print(bcolors.BOLD +  f"######## Current Partition Depth: {partition_depth}, car x: [{car_init[0][0]}, {car_init[1][0]}]  car v: [{car_init[0][3]}, {car_init[1][3]}]" + bcolors.ENDC)
             scenario.set_init_single('car', car_init, (VehicleMode.Normal,))
@@ -172,8 +173,8 @@ def verify_refine(scenario: Scenario, time_horizon, time_step
                 car_init2[0][idx] = car_v_init 
                 init_queue.append((car_init2, ped_init, partition_depth+1))
             else:
-                #prev +=total*(1/(4*(2**partition_depth)))
-                safe_bar(100*(1/(4*(2**partition_depth))))
+                progress += (1/(4*(2**partition_depth)))
+                safe_bar(progress)
                 res_list.append(traces)
             #print_progress_bar(prev, total)
 
