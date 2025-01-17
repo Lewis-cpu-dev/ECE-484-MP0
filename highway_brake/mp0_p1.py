@@ -67,6 +67,7 @@ def verify_refine(scenario: Scenario, time_horizon, time_step
             tmp[0][3] = car_v_init_range[j]
             tmp[1][3] = car_v_init_range[j+1]
             init_queue.append((tmp, init_ped, partition_depth))
+    start = len(init_queue)
     # init_queue = [(init_car, init_ped, partition_depth)]
         
 
@@ -173,10 +174,11 @@ def verify_refine(scenario: Scenario, time_horizon, time_step
                 car_init2[0][idx] = car_v_init 
                 init_queue.append((car_init2, ped_init, partition_depth+1))
             else:
-                progress += (1/(4*(2**partition_depth)))
+                progress+=1/(start*(2**partition_depth))
                 safe_bar(progress)
                 res_list.append(traces)
             #print_progress_bar(prev, total)
+            print("Verify Tasks left to run: " + str(len(init_queue)))
 
     # com_traces = combine_tree(res_list)
     print( bcolors.OKGREEN + "Verify Refine: Scenario is SAFE😃" + bcolors.ENDC)
