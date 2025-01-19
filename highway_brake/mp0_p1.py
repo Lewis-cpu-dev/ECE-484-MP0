@@ -497,7 +497,7 @@ def eval_velocity(tree_list: List[AnalysisTree]):
         else:
             print(bcolors.RED + f"Unsafety detected! Please update your DL" + bcolors.ENDC)
     if( sum(velo_list)/len(velo_list) >= 7):
-        print(bcolors.OKGREEN + f"Overall average velocity over {len(velo_list)} safe executions is {sum(velo_list)/len(velo_list)}. This is alove the threshold of 7!😋" + bcolors.ENDC)
+        print(bcolors.OKGREEN + f"Overall average velocity over {len(velo_list)} safe executions is {sum(velo_list)/len(velo_list)}. This is above the threshold of 7!😋" + bcolors.ENDC)
     else:
         print(bcolors.RED + f"Overall average velocity over {len(velo_list)} safe executions is {sum(velo_list)/len(velo_list)}. This is below the threshold of 7!😱" + bcolors.ENDC)
 
